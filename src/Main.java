@@ -10,8 +10,8 @@ public class Main {
 
         generateHeader();
 
-        Process process = new Process();
-
+        ProcessManager processManager = new ProcessManager();
+        Process process = processManager.createProcess();
         System.out.print("| Informe o quantum: ");
         quantum = scanner.nextInt();
         System.out.print("| Informe o nome do novo processo: ");
@@ -19,11 +19,14 @@ public class Main {
         System.out.print("| Informe a carga de trabalho: ");
         cargaTrabalho = scanner.next();
         process.setInfoNomeProcesso(nomeProcesso);
-        process.setInfoNomeProcesso(cargaTrabalho);
-        System.out.println("| Processo " + process.gsPidProcesso() + " Criado!");
+        process.setCargaTrabalho(cargaTrabalho);
+        processManager.addFilaPronto(process);
+        System.out.println("| Processo " + process.getpIdProcesso() + " Criado!");
         System.out.println("| Iniciando simulação de execução do processo...");
 
         generateHeader();
+
+        processManager.showProcess();
     }
 
     public static void generateHeader() {
