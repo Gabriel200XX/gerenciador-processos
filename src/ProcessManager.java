@@ -4,6 +4,7 @@ public class ProcessManager {
     private int contClicloExec;
     private int quantum;
     private static int QUANTUM;
+    private boolean continua = true;
 
     private int processoAtual;
     private String nomeProcessoAtual;
@@ -29,13 +30,19 @@ public class ProcessManager {
         this.quantum = QUANTUM;
     }
 
-    public void process(){
+    public boolean process(){
+        boolean retorno = true;
         Scanner seguinte = new Scanner(System.in);
-        while (true) {
-            if (processoPronto != null && processoExecucao == null) {
+        while (continua) {
+            if (processoPronto != null && processoExecucao == null && processoEspera == null) {
                 showProcess();
-                processoExecucao = processoPronto;
-                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                if(processoPronto.checkCargaTrabalhoCPU()) {
+                    processoExecucao = processoPronto;
+                    System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                } else {
+                    processoEspera = processoPronto;
+                    System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
+                }
                 System.out.println("Próxima ação: " + "Selecionar um processo para executar");
             } else if (processoPronto != null && processoExecucao != null) {
                 processoPronto = null;
@@ -43,47 +50,88 @@ public class ProcessManager {
                 System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
                 System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
                 contClicloExec++;
+            } else if (processoPronto != null && processoEspera != null) {
+                processoPronto = null;
+                showProcess();
+                System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
+                System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
+                contClicloExec++;
             } else if (processoExecucao != null) {
                 if (quantum > 0) {
-                    processoExecucao.execCargaTrabalho();
-                    showProcess();
-                    System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
-                    System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
-                    quantum--;
-                    contClicloExec++;
+                    if(!processoExecucao.getCargaTrabalho().equals("")) {
+                        processoExecucao.execCargaTrabalho();
+                        quantum--;
+                        showProcess();
+                        System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                        System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
+                        contClicloExec++;
+                    } else {
+                        finishProcess();
+                        System.out.println("Carga de trabalho: -");
+                        System.out.println("Próxima ação: " + "O processo será excluído");
+                    }
                 } else {
-                    processoEspera = processoExecucao;
+                    processoPronto = processoExecucao;
+                    processoExecucao = null;
+                    showProcess();
+                    quantum = QUANTUM;
                 }
-            } else if (processoExecucao != null && processoEspera != null) {
-                processoExecucao = null;
-                showProcess();
-                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
-                System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
-                contClicloExec++;
             } else if (processoEspera != null) {
-                showProcess();
-                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
-                System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
-                contClicloExec++;
+                if (quantum > 0) {
+                    if(!processoEspera.getCargaTrabalho().equals("")) {
+                        processoEspera.execCargaTrabalho();
+                        quantum--;
+                        showProcess();
+                        System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
+                        System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
+                        contClicloExec++;
+                    } else {
+                        finishProcess();
+                        System.out.println("Carga de trabalho: -");
+                        System.out.println("Próxima ação: " + "O processo será excluído");
+                    }
+                } else {
+                    processoPronto = processoEspera;
+                    processoEspera = null;
+                    showProcess();
+                    quantum = QUANTUM;
+                }
+            } else {
+                String valor;
+                System.out.println("+======================================================+");
+                System.out.println("Processo excluído");
+                continua = false;
             }
             System.out.println("Pressione qualquer Tecla para continuar");
             seguinte.nextLine();
         }
+        return retorno;
     }
 
-    public void showProcess() {
+    private void showProcess() {
         System.out.println("+------------------------------------------------------+");
         System.out.println("|               GERENCIADOR DE PROCESSOS               |");
         System.out.println("+------------------------------------------------------+");
         System.out.println("| Contador de ciclo de execução : " + contClicloExec);
         System.out.println("| Processos na fila de pronto (" + (processoPronto != null && processoExecucao == null ? 1 + ") : " + processoPronto.getpIdProcesso() : 0 + ") : -"));
         System.out.println("| Processo em execução : " + (processoExecucao != null ? processoExecucao.getpIdProcesso() : "-"));
-        System.out.println("| Tempo restante : " + quantum);
-        System.out.println("| Carga de trabalho : " + (processoExecucao != null ? processoExecucao.getCargaTrabalho() : "-"));
+        System.out.println("| Tempo restante : " + (processoPronto == null ? quantum : "-"));
+        System.out.println("| Carga de trabalho : " + (processoExecucao != null && !processoExecucao.getCargaTrabalho().equals("") ? processoExecucao.getCargaTrabalho() : "-"));
         System.out.println("| Processos esperando : " + (processoEspera != null ? processoEspera.getpIdProcesso() : "-"));
         System.out.println("| Carga de trabalho : " + (processoEspera != null ? processoEspera.getCargaTrabalho() : "-"));
         System.out.println("| Processos finalizados : " + (processoFinalizado != null ? processoFinalizado.getpIdProcesso() : "-"));
         System.out.println("+------------------------------------------------------+");
-        System.out.println("Processo " + this.processoAtual + " " + this.nomeProcessoAtual + " / Estado Atual : " + (processoPronto != null && processoExecucao == null ? "Pronto" : processoExecucao != null ? "Executando" : "Sem status"));
+        System.out.println("Processo " + this.processoAtual + " " + this.nomeProcessoAtual + " / Estado Atual : " + (processoPronto != null && processoExecucao == null ? "Pronto" : processoExecucao != null ? "Executando" : processoEspera != null ? "Esperando" : "Terminando"));
+    }
+
+    private void finishProcess() {
+        if (processoExecucao != null) {
+            processoFinalizado = processoExecucao;
+        } else if (processoEspera != null) {
+            processoFinalizado = processoEspera;
+        }
+        processoExecucao = null;
+        processoEspera = null;
+        showProcess();
     }
 }
