@@ -20,13 +20,12 @@ public class Main {
         cargaTrabalho = scanner.next();
         process.setInfoNomeProcesso(nomeProcesso);
         process.setCargaTrabalho(cargaTrabalho);
+        processManager.setQUANTUM(quantum);
         processManager.addFilaPronto(process);
         System.out.println("| Processo " + process.getpIdProcesso() + " Criado!");
         System.out.println("| Iniciando simulação de execução do processo...");
 
-        generateHeader();
-
-        processManager.showProcess();
+        processManager.process();
     }
 
     public static void generateHeader() {
