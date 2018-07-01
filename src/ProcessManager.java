@@ -56,45 +56,63 @@ public class ProcessManager {
                 System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
                 System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
                 contClicloExec++;
-            } else if (processoExecucao != null) {
-                if (quantum > 0) {
-                    if(!processoExecucao.getCargaTrabalho().equals("")) {
-                        processoExecucao.execCargaTrabalho();
-                        quantum--;
-                        showProcess();
-                        System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
-                        System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
-                        contClicloExec++;
+            } else if (processoExecucao != null || processoEspera != null) {
+                if (processoExecucao != null) {
+                    if (quantum > 0) {
+                        if (!processoExecucao.getCargaTrabalho().equals("")) {
+                            processoExecucao.execCargaTrabalho();
+                            quantum--;
+                            if (!processoExecucao.getCargaTrabalho().equals("") && processoExecucao.checkCargaTrabalhoCPU()) {
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
+                            } else {
+                                processoEspera = processoExecucao;
+                                processoExecucao = null;
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Aguardar um ciclo de E/S");
+                            }
+                            contClicloExec++;
+                        } else {
+                            finishProcess();
+                            System.out.println("Carga de trabalho: -");
+                            System.out.println("Próxima ação: " + "O processo será excluído");
+                        }
                     } else {
-                        finishProcess();
-                        System.out.println("Carga de trabalho: -");
-                        System.out.println("Próxima ação: " + "O processo será excluído");
-                    }
-                } else {
-                    processoPronto = processoExecucao;
-                    processoExecucao = null;
-                    showProcess();
-                    quantum = QUANTUM;
-                }
-            } else if (processoEspera != null) {
-                if (quantum > 0) {
-                    if(!processoEspera.getCargaTrabalho().equals("")) {
-                        processoEspera.execCargaTrabalho();
-                        quantum--;
+                        processoPronto = processoExecucao;
+                        processoExecucao = null;
                         showProcess();
-                        System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
-                        System.out.println("Próxima ação: " + "Aguardando um cliclo de E/S");
-                        contClicloExec++;
-                    } else {
-                        finishProcess();
-                        System.out.println("Carga de trabalho: -");
-                        System.out.println("Próxima ação: " + "O processo será excluído");
+                        quantum = QUANTUM;
                     }
-                } else {
-                    processoPronto = processoEspera;
-                    processoEspera = null;
-                    showProcess();
-                    quantum = QUANTUM;
+                } else if (processoEspera != null) {
+                    if (quantum > 0) {
+                        if(!processoEspera.getCargaTrabalho().equals("")) {
+                            processoEspera.execCargaTrabalho();
+                            quantum--;
+                            if (!processoEspera.getCargaTrabalho().equals("") && !processoEspera.checkCargaTrabalhoCPU()) {
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Aguardar um ciclo de E/S");
+                            } else {
+                                processoExecucao = processoEspera;
+                                processoEspera = null;
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
+                            }
+                            contClicloExec++;
+                        } else {
+                            finishProcess();
+                            System.out.println("Carga de trabalho: -");
+                            System.out.println("Próxima ação: " + "O processo será excluído");
+                        }
+                    } else {
+                        processoPronto = processoEspera;
+                        processoEspera = null;
+                        showProcess();
+                        quantum = QUANTUM;
+                    }
                 }
             } else {
                 String valor;
