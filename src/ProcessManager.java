@@ -124,8 +124,9 @@ public class ProcessManager {
                     } else {
                         processoPronto = processoEspera;
                         processoEspera = null;
-                        showProcess();
                         quantum = QUANTUM;
+                        continue;
+                        // showProcess();
                     }
                 }
             } else {
