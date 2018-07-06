@@ -33,6 +33,7 @@ public class ProcessManager {
     public boolean process(){
         boolean retorno = true;
         Scanner seguinte = new Scanner(System.in);
+        // Não se pode fazer uma só chamada do método showProcess(), pois a cada entrada no if, é feito um processamento diferente.
         while (continua) {
             if (processoPronto != null && processoExecucao == null && processoEspera == null) {
                 showProcess();
@@ -66,6 +67,12 @@ public class ProcessManager {
                                 showProcess();
                                 System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
                                 System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
+                            } else if (processoExecucao.getCargaTrabalho().equals("")) {
+                                processoFinalizado = processoExecucao;
+                                processoExecucao = null;
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoFinalizado.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Terminando");
                             } else {
                                 processoEspera = processoExecucao;
                                 processoExecucao = null;
@@ -82,8 +89,9 @@ public class ProcessManager {
                     } else {
                         processoPronto = processoExecucao;
                         processoExecucao = null;
-                        showProcess();
                         quantum = QUANTUM;
+                        continue;
+                        // showProcess();
                     }
                 } else if (processoEspera != null) {
                     if (quantum > 0) {
@@ -94,11 +102,17 @@ public class ProcessManager {
                                 showProcess();
                                 System.out.println("Carga de trabalho: " + processoEspera.getCargaTrabalho());
                                 System.out.println("Próxima ação: " + "Aguardar um ciclo de E/S");
-                            } else {
-                                processoExecucao = processoEspera;
+                            } else if (processoEspera.getCargaTrabalho().equals("")) {
+                                processoFinalizado = processoEspera;
                                 processoEspera = null;
                                 showProcess();
-                                System.out.println("Carga de trabalho: " + processoExecucao.getCargaTrabalho());
+                                System.out.println("Carga de trabalho: " + processoFinalizado.getCargaTrabalho());
+                                System.out.println("Próxima ação: " + "Terminando");
+                            } else {
+                                processoPronto = processoEspera;
+                                processoEspera = null;
+                                showProcess();
+                                System.out.println("Carga de trabalho: " + processoPronto.getCargaTrabalho());
                                 System.out.println("Próxima ação: " + "Executar um ciclo de CPU");
                             }
                             contClicloExec++;

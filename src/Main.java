@@ -41,14 +41,3 @@ public class Main {
         System.out.println("+------------------------------------------------------+");
     }
 }
-
-/*
-* Quantum: 4
-* Verificar o erro do AAAA
-*
-* Quantum: 4
-* ACAC
-* Pois do esperando tem que ir para o pronto.
-*
-* Tirar as chamadas do showProcess desnecessárias.
-* */
